@@ -7,15 +7,15 @@ module.exports = function(homebridge) {
   Characteristic = homebridge.hap.Characteristic;
   UUIDGen = homebridge.hap.uuid;
 
-  homebridge.registerPlatform("homebridge-liftmaster2", "LiftMaster2", LiftMasterPlatform, true);
+  homebridge.registerPlatform("homebridge-assurelink2", "AssureLink2", AssureLinkPlatform, true);
 }
 
 // This seems to be the "id" of the official LiftMaster iOS app
 var APP_ID = "JVM/G9Nwih5BwKgNCjLxiFUQxQijAebyyg8QUHr7JOrP+tuPb8iHfRHKwTmDzHOu";
 
-function LiftMasterPlatform(log, config, api) {
+function AssureLinkPlatform(log, config, api) {
   this.log = log;
-  this.config = config || {"platform": "LiftMaster2"};
+  this.config = config || {"platform": "AssureLink2"};
   this.username = this.config.username;
   this.password = this.config.password;
   this.longPoll = parseInt(this.config.longPoll, 10) || 300;
@@ -38,14 +38,14 @@ function LiftMasterPlatform(log, config, api) {
 }
 
 // Method to restore accessories from cache
-LiftMasterPlatform.prototype.configureAccessory = function(accessory) {
+AssureLinkPlatform.prototype.configureAccessory = function(accessory) {
   this.setService(accessory);
   var accessoryID = accessory.context.deviceID;
   this.accessories[accessoryID] = accessory;
 }
 
 // Method to setup accesories from config.json
-LiftMasterPlatform.prototype.didFinishLaunching = function() {
+AssureLinkPlatform.prototype.didFinishLaunching = function() {
   if (this.username && this.password) {
     // Add or update accessory in HomeKit
     this.addAccessory();
@@ -58,7 +58,7 @@ LiftMasterPlatform.prototype.didFinishLaunching = function() {
 }
 
 // Method to add or update HomeKit accessories
-LiftMasterPlatform.prototype.addAccessory = function() {
+AssureLinkPlatform.prototype.addAccessory = function() {
   var self = this;
 
   this.login(function(error){
@@ -80,7 +80,7 @@ LiftMasterPlatform.prototype.addAccessory = function() {
 }
 
 // Method to remove accessories from HomeKit
-LiftMasterPlatform.prototype.removeAccessory = function(accessory) {
+AssureLinkPlatform.prototype.removeAccessory = function(accessory) {
   if (accessory) {
     var deviceID = accessory.context.deviceID;
     this.log("[" + accessory.displayName + "] Removed from HomeBridge.");
@@ -90,7 +90,7 @@ LiftMasterPlatform.prototype.removeAccessory = function(accessory) {
 }
 
 // Method to setup listeners for different events
-LiftMasterPlatform.prototype.setService = function(accessory) {
+AssureLinkPlatform.prototype.setService = function(accessory) {
   accessory
     .getService(Service.GarageDoorOpener)
     .getCharacteristic(Characteristic.CurrentDoorState)
@@ -106,7 +106,7 @@ LiftMasterPlatform.prototype.setService = function(accessory) {
 }
 
 // Method to setup HomeKit accessory information
-LiftMasterPlatform.prototype.setAccessoryInfo = function(accessory) {
+AssureLinkPlatform.prototype.setAccessoryInfo = function(accessory) {
   if (this.manufacturer) {
   accessory
     .getService(Service.AccessoryInformation)
@@ -121,7 +121,7 @@ LiftMasterPlatform.prototype.setAccessoryInfo = function(accessory) {
 }
 
 // Method to set target door state
-LiftMasterPlatform.prototype.setTargetState = function(accessory, state, callback) {
+AssureLinkPlatform.prototype.setTargetState = function(accessory, state, callback) {
   var self = this;
 
   // Always re-login for setting the state
@@ -137,13 +137,13 @@ LiftMasterPlatform.prototype.setTargetState = function(accessory, state, callbac
 }
 
 // Method to get target door state
-LiftMasterPlatform.prototype.getTargetState = function(accessory, callback) {
+AssureLinkPlatform.prototype.getTargetState = function(accessory, callback) {
   // Get target state directly from cache
   callback(null, accessory.context.currentState % 2);
 }
 
 // Method to get current door state
-LiftMasterPlatform.prototype.getCurrentState = function(accessory, callback) {
+AssureLinkPlatform.prototype.getCurrentState = function(accessory, callback) {
   var self = this;
   var thisOpener = accessory.context;
   var name = accessory.displayName;
@@ -160,7 +160,7 @@ LiftMasterPlatform.prototype.getCurrentState = function(accessory, callback) {
 }
 
 // Method for state periodic update
-LiftMasterPlatform.prototype.periodicUpdate = function() {
+AssureLinkPlatform.prototype.periodicUpdate = function() {
   var self = this;
 
   // Determine polling interval
@@ -193,7 +193,7 @@ LiftMasterPlatform.prototype.periodicUpdate = function() {
 }
 
 // Method to update door state in HomeKit
-LiftMasterPlatform.prototype.updateDoorStates = function(accessory) {
+AssureLinkPlatform.prototype.updateDoorStates = function(accessory) {
   accessory
     .getService(Service.GarageDoorOpener)
     .setCharacteristic(Characteristic.CurrentDoorState, accessory.context.currentState);
@@ -205,7 +205,7 @@ LiftMasterPlatform.prototype.updateDoorStates = function(accessory) {
 }
 
 // Method to retrieve door state from the server
-LiftMasterPlatform.prototype.updateState = function(callback) {
+AssureLinkPlatform.prototype.updateState = function(callback) {
   if (this.validData) {
     // Refresh data directly from sever if current data is valid
     this.getDevice(function(error) {
@@ -220,13 +220,13 @@ LiftMasterPlatform.prototype.updateState = function(callback) {
 }
 
 // Method to handle identify request
-LiftMasterPlatform.prototype.identify = function(accessory, paired, callback) {
+AssureLinkPlatform.prototype.identify = function(accessory, paired, callback) {
   this.log("[" + accessory.displayName + "] Identify requested!");
   callback();
 }
 
 // Login to MyQ server
-LiftMasterPlatform.prototype.login = function(callback) {
+AssureLinkPlatform.prototype.login = function(callback) {
   var self = this;
 
   // querystring params
@@ -263,7 +263,7 @@ LiftMasterPlatform.prototype.login = function(callback) {
 }
 
 // Find your garage door ID
-LiftMasterPlatform.prototype.getDevice = function(callback) {
+AssureLinkPlatform.prototype.getDevice = function(callback) {
   var self = this;
 
   // Reset validData hint until we retrived data from the server
@@ -413,7 +413,7 @@ LiftMasterPlatform.prototype.getDevice = function(callback) {
 }
 
 // Send opener target state to the server
-LiftMasterPlatform.prototype.setState = function(accessory, state, callback) {
+AssureLinkPlatform.prototype.setState = function(accessory, state, callback) {
   var self = this;
   var thisOpener = accessory.context;
   var name = accessory.displayName;
@@ -478,7 +478,7 @@ LiftMasterPlatform.prototype.setState = function(accessory, state, callback) {
 }
 
 // Method to handle plugin configuration in HomeKit app
-LiftMasterPlatform.prototype.configurationRequestHandler = function(context, request, callback) {
+AssureLinkPlatform.prototype.configurationRequestHandler = function(context, request, callback) {
   if (request && request.type === "Terminate") {
     return;
   }

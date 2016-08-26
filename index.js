@@ -236,7 +236,7 @@ AssureLinkPlatform.prototype.login = function(callback) {
     culture: "en"
   };
 
-  // login to liftmaster
+  // login to assurelink
   request.get({
     url: "https://craftexternal.myqdevice.com/api/user/validatewithculture",
     qs: query
@@ -249,7 +249,7 @@ AssureLinkPlatform.prototype.login = function(callback) {
       self.userId = json["UserId"];
       self.securityToken = json["SecurityToken"];
       self.manufacturer = json["BrandName"].toString();
-      self.log("[MyQ] Logged in with MyQ user ID " + self.userId);
+      self.log("[MyQ] Logged in with Assurelink user ID " + self.userId);
       self.getDevice(callback);
     } else {
       self.log("[MyQ] Error '"+err+"' logging in to Assurelink: " + body);
@@ -440,7 +440,7 @@ AssureLinkPlatform.prototype.setState = function(accessory, state, callback) {
     MyQDeviceId: thisOpener.deviceID
   };
 
-  // Send the state request to liftmaster
+  // Send the state request to Assurelink
   request.put({
     url: "https://craftexternal.myqdevice.com/api/v4/DeviceAttribute/PutDeviceAttribute",
     qs: query,

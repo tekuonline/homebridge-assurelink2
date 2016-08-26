@@ -1,4 +1,4 @@
-# homebridge-liftmaster2
+# homebridge-assurelink2
 ASSURELINK Plugin for [HomeBridge](https://github.com/nfarina/homebridge) (API 2.0)
 
 Older verion with API 1.0: [homebridge-assurelink](https://github.com/tekuonline/homebridge-assurelink)

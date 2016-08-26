@@ -35,8 +35,8 @@ This step is not required. HomeBridge with API 2.0 can handle configurations in 
 | Fields            | Description                                                   | Required |
 |-------------------|---------------------------------------------------------------|----------|
 | platform          | Must always be `AssureLink2`.                                 | Yes      |
-| username          | Your MyQ account email.                                       | Yes      |
-| password          | Your MyQ account password.                                    | Yes      |
+| username          | Your Assurelink account email.                                       | Yes      |
+| password          | Your Assurelink account password.                                    | Yes      |
 | longPoll          | Normal polling interval in `s` (Default 300s).                | No       |
 | shortPoll         | Polling interval in `s` when door state changes (Default 5s). | No       |
 | shortPollDuration | Duration in `s` to use `shortPoll` (Default 120s).            | No       |

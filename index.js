@@ -10,8 +10,7 @@ module.exports = function(homebridge) {
   homebridge.registerPlatform("homebridge-assurelink2", "AssureLink2", AssureLinkPlatform, true);
 }
 
-// This seems to be the "id" of the official LiftMaster iOS app
-var APP_ID = "JVM/G9Nwih5BwKgNCjLxiFUQxQijAebyyg8QUHr7JOrP+tuPb8iHfRHKwTmDzHOu";
+var APP_ID = "eU97d99kMG4t3STJZO/Mu2wt69yTQwM0WXZA5oZ74/ascQ2xQrLD/yjeVhEQccBZ";
 
 function AssureLinkPlatform(log, config, api) {
   this.log = log;
@@ -53,7 +52,7 @@ AssureLinkPlatform.prototype.didFinishLaunching = function() {
     // Start polling
     this.periodicUpdate();
   } else {
-    this.log("[MyQ] Please setup MyQ login information!")
+    this.log("[MYQ] Please setup Assurelink login information!")
   }
 }
 
@@ -74,7 +73,7 @@ AssureLinkPlatform.prototype.addAccessory = function() {
         }
       }
     } else {
-      self.log("[MyQ] " + error);
+      self.log("[MYQ] " + error);
     }
   });
 }
@@ -84,7 +83,7 @@ AssureLinkPlatform.prototype.removeAccessory = function(accessory) {
   if (accessory) {
     var deviceID = accessory.context.deviceID;
     this.log("[" + accessory.displayName + "] Removed from HomeBridge.");
-    this.api.unregisterPlatformAccessories("homebridge-liftmaster2", "LiftMaster2", [accessory]);
+    this.api.unregisterPlatformAccessories("homebridge-assurelink2", "AssureLink2", [accessory]);
     delete this.accessories[deviceID];
   }
 }
@@ -239,7 +238,7 @@ AssureLinkPlatform.prototype.login = function(callback) {
 
   // login to liftmaster
   request.get({
-    url: "https://myqexternal.myqdevice.com/api/user/validatewithculture",
+    url: "https://craftexternal.myqdevice.com/api/user/validatewithculture",
     qs: query
   }, function(err, response, body) {
 
@@ -253,11 +252,11 @@ AssureLinkPlatform.prototype.login = function(callback) {
       self.log("[MyQ] Logged in with MyQ user ID " + self.userId);
       self.getDevice(callback);
     } else {
-      self.log("[MyQ] Error '"+err+"' logging in to MyQ: " + body);
+      self.log("[MyQ] Error '"+err+"' logging in to Assurelink: " + body);
       callback(err);
     }
   }).on('error', function(err) {
-    self.log("[MyQ] " + err);
+    self.log("[MYQ] " + err);
     callback(err);
   });
 }
@@ -284,7 +283,7 @@ AssureLinkPlatform.prototype.getDevice = function(callback) {
 
   // Request details of all your devices
   request.get({
-    url: "https://myqexternal.myqdevice.com/api/v4/userdevicedetails/get",
+    url: "https://craftexternal.myqdevice.com/api/v4/userdevicedetails/get",
     qs: query,
     headers: headers
   }, function(err, response, body) {
@@ -348,7 +347,7 @@ AssureLinkPlatform.prototype.getDevice = function(callback) {
               self.setService(newAccessory);
 
               // Register accessory in HomeKit
-              self.api.registerPlatformAccessories("homebridge-liftmaster2", "LiftMaster2", [newAccessory]);
+              self.api.registerPlatformAccessories("homebridge-assurelink2", "AssureLink2", [newAccessory]);
             } else {
               // Retrieve accessory from cache
               var newAccessory = self.accessories[thisDeviceID];
@@ -386,7 +385,7 @@ AssureLinkPlatform.prototype.getDevice = function(callback) {
           }
         }
       } catch (err) {
-        self.log("[MyQ] Error '" + err + "'");
+        self.log("[MYQ] Error '" + err + "'");
       }
 
       // Did we have valid data?
@@ -443,7 +442,7 @@ AssureLinkPlatform.prototype.setState = function(accessory, state, callback) {
 
   // Send the state request to liftmaster
   request.put({
-    url: "https://myqexternal.myqdevice.com/api/v4/DeviceAttribute/PutDeviceAttribute",
+    url: "https://craftexternal.myqdevice.com/api/v4/DeviceAttribute/PutDeviceAttribute",
     qs: query,
     headers: headers,
     body: body,

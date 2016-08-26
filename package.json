@@ -9,7 +9,10 @@
   "keywords": [
     "homebridge-plugin"
   ],
-  "author": "Luis Iam",
+  "author": "Tek Nepal",
+  "contributor": [{
+  "name": "luisiam"
+}],
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/tekuonline/homebridge-assurelink2/issues"

@@ -10,6 +10,7 @@ module.exports = function(homebridge) {
   homebridge.registerPlatform("homebridge-assurelink2", "AssureLink2", AssureLinkPlatform, true);
 }
 
+
 var APP_ID = "eU97d99kMG4t3STJZO/Mu2wt69yTQwM0WXZA5oZ74/ascQ2xQrLD/yjeVhEQccBZ";
 
 function AssureLinkPlatform(log, config, api) {
@@ -17,10 +18,12 @@ function AssureLinkPlatform(log, config, api) {
   this.config = config || {"platform": "AssureLink2"};
   this.username = this.config.username;
   this.password = this.config.password;
+  this.openDuration = parseInt(this.config.openDuration, 10) || 15;
+  this.closeDuration = parseInt(this.config.closeDuration, 10) || 25;
+  this.polling = this.config.polling === true;
   this.longPoll = parseInt(this.config.longPoll, 10) || 300;
   this.shortPoll = parseInt(this.config.shortPoll, 10) || 5;
   this.shortPollDuration = parseInt(this.config.shortPollDuration, 10) || 120;
-  this.tout = null;
   this.maxCount = this.shortPollDuration / this.shortPoll;
   this.count = this.maxCount;
   this.validData = false;
@@ -39,8 +42,7 @@ function AssureLinkPlatform(log, config, api) {
 // Method to restore accessories from cache
 AssureLinkPlatform.prototype.configureAccessory = function(accessory) {
   this.setService(accessory);
-  var accessoryID = accessory.context.deviceID;
-  this.accessories[accessoryID] = accessory;
+  this.accessories[accessory.context.deviceID] = accessory;
 }
 
 // Method to setup accesories from config.json
@@ -50,7 +52,7 @@ AssureLinkPlatform.prototype.didFinishLaunching = function() {
     this.addAccessory();
 
     // Start polling
-    this.periodicUpdate();
+     if (this.polling) this.statePolling(0);
   } else {
     this.log("[MYQ] Please setup Assurelink login information!")
   }
@@ -72,9 +74,7 @@ AssureLinkPlatform.prototype.addAccessory = function() {
           self.updateDoorStates(accessory);
         }
       }
-    } else {
-      self.log("[MYQ] " + error);
-    }
+    } 
   });
 }
 
@@ -90,13 +90,11 @@ AssureLinkPlatform.prototype.removeAccessory = function(accessory) {
 
 // Method to setup listeners for different events
 AssureLinkPlatform.prototype.setService = function(accessory) {
-  accessory
-    .getService(Service.GarageDoorOpener)
+  accessory.getService(Service.GarageDoorOpener)
     .getCharacteristic(Characteristic.CurrentDoorState)
     .on('get', this.getCurrentState.bind(this, accessory));
 
-  accessory
-    .getService(Service.GarageDoorOpener)
+  accessory.getService(Service.GarageDoorOpener)
     .getCharacteristic(Characteristic.TargetDoorState)
     .on('get', this.getTargetState.bind(this, accessory))
     .on('set', this.setTargetState.bind(this, accessory));
@@ -105,75 +103,51 @@ AssureLinkPlatform.prototype.setService = function(accessory) {
 }
 
 // Method to setup HomeKit accessory information
-AssureLinkPlatform.prototype.setAccessoryInfo = function(accessory) {
-  if (this.manufacturer) {
-  accessory
-    .getService(Service.AccessoryInformation)
-    .setCharacteristic(Characteristic.Manufacturer, this.manufacturer);
+AssureLinkPlatform..prototype.setAccessoryInfo = function (accessory, model, serial) {
+  accessory.getService(Service.AccessoryInformation)
+    .setCharacteristic(Characteristic.Manufacturer, this.manufacturer)
+    .setCharacteristic(Characteristic.Model, model)
+    .setCharacteristic(Characteristic.SerialNumber, serial);
+}
+
+  //
+AssureLinkPlatform.prototype.updateDoorStates = function (accessory) {
+  accessory.getService(Service.GarageDoorOpener)
+    .setCharacteristic(Characteristic.CurrentDoorState, accessory.context.currentState);
+  
+  accessory.getService(Service.GarageDoorOpener)
+    .getCharacteristic(Characteristic.TargetDoorState)
+    .getValue();
+}
+
+//
+AssureLinkPlatform.prototype.updateState = function (callback) {
+  if (this.validData && this.polling) {
+    // Refresh data directly from sever if current data is valid
+    this.getDevice(callback);
+  } else {
+    // Re-login if current data is not valid
+    this.login(callback);
   }
-
-  if (accessory.context.serialNumber) {
-    accessory
-      .getService(Service.AccessoryInformation)
-      .setCharacteristic(Characteristic.SerialNumber, accessory.context.serialNumber);
-  }
 }
 
-// Method to set target door state
-AssureLinkPlatform.prototype.setTargetState = function(accessory, state, callback) {
+//
+AssureLinkPlatform.prototype.statePolling = function (delay) {
   var self = this;
+  var refresh = this.longPoll + delay;
 
-  // Always re-login for setting the state
-  this.login(function(loginError) {
-    if (!loginError) {
-      self.setState(accessory, state, function(setStateError) {
-        callback(setStateError);
-      });
-    } else {
-      callback(loginError);
-    }
-  });
-}
-
-// Method to get target door state
-AssureLinkPlatform.prototype.getTargetState = function(accessory, callback) {
-  // Get target state directly from cache
-  callback(null, accessory.context.currentState % 2);
-}
-
-// Method to get current door state
-AssureLinkPlatform.prototype.getCurrentState = function(accessory, callback) {
-  var self = this;
-  var thisOpener = accessory.context;
-  var name = accessory.displayName;
-
-  // Retrieve latest state from server
-  this.updateState(function(error) {
-    if (!error) {
-      self.log("[" + name + "] Getting current state: " + self.doorState[thisOpener.currentState]);
-      callback(null, thisOpener.currentState);
-    } else {
-      callback(error);
-    }
-  });
-}
-
-// Method for state periodic update
-AssureLinkPlatform.prototype.periodicUpdate = function() {
-  var self = this;
+  // Clear polling
+  clearTimeout(this.tout);
 
   // Determine polling interval
   if (this.count  < this.maxCount) {
     this.count++;
-    var refresh = this.shortPoll;
-  } else {
-    var refresh = this.longPoll;
+    refresh = this.shortPoll + delay;
   }
 
-  // Setup periodic update with polling interval
-  this.tout = setTimeout(function() {
-    self.tout = null
-    self.updateState(function(error) {
+//
+this.tout = setTimeout(function () {
+    self.updateState(function (error) {
       if (!error) {
         // Update states for all HomeKit accessories
         for (var deviceID in self.accessories) {
@@ -186,46 +160,13 @@ AssureLinkPlatform.prototype.periodicUpdate = function() {
       }
 
       // Setup next polling
-      self.periodicUpdate();
+      self.statePolling(0);
     });
   }, refresh * 1000);
 }
 
-// Method to update door state in HomeKit
-AssureLinkPlatform.prototype.updateDoorStates = function(accessory) {
-  accessory
-    .getService(Service.GarageDoorOpener)
-    .setCharacteristic(Characteristic.CurrentDoorState, accessory.context.currentState);
-  
-  accessory
-    .getService(Service.GarageDoorOpener)
-    .getCharacteristic(Characteristic.TargetDoorState)
-    .getValue();
-}
-
-// Method to retrieve door state from the server
-AssureLinkPlatform.prototype.updateState = function(callback) {
-  if (this.validData) {
-    // Refresh data directly from sever if current data is valid
-    this.getDevice(function(error) {
-      callback(error);
-    });
-  } else {
-    // Re-login if current data is not valid
-    this.login(function(error) {
-      callback(error);
-    });
-  }
-}
-
-// Method to handle identify request
-AssureLinkPlatform.prototype.identify = function(accessory, paired, callback) {
-  this.log("[" + accessory.displayName + "] Identify requested!");
-  callback();
-}
-
-// Login to MyQ server
-AssureLinkPlatform.prototype.login = function(callback) {
+//login
+AssureLinkPlatform.prototype.login = function (callback) {
   var self = this;
 
   // querystring params
@@ -236,33 +177,38 @@ AssureLinkPlatform.prototype.login = function(callback) {
     culture: "en"
   };
 
-  // login to assurelink
+  // login to liftmaster
   request.get({
     url: "https://craftexternal.myqdevice.com/api/user/validatewithculture",
     qs: query
-  }, function(err, response, body) {
+  }, function (err, response, body) {
+	// parse and interpret the response
+    var json = JSON.parse(body);
 
-    if (!err && response.statusCode == 200) {
-
-      // parse and interpret the response
-      var json = JSON.parse(body);
-      self.userId = json["UserId"];
-      self.securityToken = json["SecurityToken"];
-      self.manufacturer = json["BrandName"].toString();
-      self.log("[MyQ] Logged in with Assurelink user ID " + self.userId);
-      self.getDevice(callback);
+    if (!err && response.statusCode === 200) {      
+      // Check for MyQ Error Codes
+      if (json.ReturnCode > 200) { 
+        self.log(json.ErrorMessage);
+        callback(json.ErrorMessage);
+      } else {
+        self.userId = json.UserId;
+        self.securityToken = json.SecurityToken;
+        self.manufacturer = json.BrandName.toString();
+        self.log("Logged in with MyQ user ID " + self.userId);
+        self.getDevice(callback);
+      }
     } else {
-      self.log("[MyQ] Error '"+err+"' logging in to Assurelink: " + body);
-      callback(err);
+      self.log("Error '" + err + "' logging in to MyQ: " + body);
+      callback(err || new Error(json.ErrorMessage));
     }
-  }).on('error', function(err) {
-    self.log("[MYQ] " + err);
+  }).on('error', function (err) {
+    self.log(err);
     callback(err);
   });
 }
 
-// Find your garage door ID
-AssureLinkPlatform.prototype.getDevice = function(callback) {
+
+AssureLinkPlatform.prototype.getDevice = function (callback) {
   var self = this;
 
   // Reset validData hint until we retrived data from the server
@@ -281,142 +227,135 @@ AssureLinkPlatform.prototype.getDevice = function(callback) {
     SecurityToken: this.securityToken
   };
 
-  // Request details of all your devices
+// Request details of all your devices
   request.get({
     url: "https://craftexternal.myqdevice.com/api/v4/userdevicedetails/get",
     qs: query,
     headers: headers
-  }, function(err, response, body) {
+  }, function (err, response, body) {
 
-    if (!err && response.statusCode == 200) {
+    if (!err && response.statusCode === 200) {
       try {
-        // Parse and interpret the response
+        // parse and interpret the response
         var json = JSON.parse(body);
-        var devices = json["Devices"];
+        var devices = json.Devices;
 
         // Look through the array of devices for all the openers
         for (var i = 0; i < devices.length; i++) {
           var device = devices[i];
+          var deviceType = device.MyQDeviceTypeName;
 
-          if (device["MyQDeviceTypeName"] == "Garage Door Opener WGDO" || device["MyQDeviceTypeName"] == "GarageDoorOpener" || device["MyQDeviceTypeName"] == "VGDO") {
+          if (deviceType === "Garage Door Opener WGDO" || deviceType === "GarageDoorOpener" || deviceType === "VGDO" || deviceType === "Gate") {
             var thisDeviceID = device.MyQDeviceId.toString();
-            var thisSerialNumber = device.SerialNumber.toString();
+            var thisSerial = device.SerialNumber.toString();
+            var thisModel = deviceType.toString();
             var thisDoorName = "Unknown";
-            var thisDoorState = 2;
+            var thisDoorState = "2";
             var nameFound = false;
             var stateFound = false;
 
             for (var j = 0; j < device.Attributes.length; j ++) {
               var thisAttributeSet = device.Attributes[j];
-              if (thisAttributeSet.AttributeDisplayName == "desc") {
+              if (thisAttributeSet.AttributeDisplayName === "desc") {
                 thisDoorName = thisAttributeSet.Value;
                 nameFound = true;
               }
-              if (thisAttributeSet.AttributeDisplayName == "doorstate") {
+              if (thisAttributeSet.AttributeDisplayName === "doorstate") {
                 thisDoorState = thisAttributeSet.Value;
                 stateFound = true;
               }
-              if (nameFound && stateFound) {
-                break;
-              }
+              if (nameFound && stateFound) break;
             }
 
-            // Initialization for opener
-            if (!self.accessories[thisDeviceID]) {
-              var uuid = UUIDGen.generate(thisDeviceID);
+            // Retrieve accessory from cache
+            var accessory = self.accessories[thisDeviceID];
 
+            // Initialization for new accessory
+            if (!accessory) {
               // Setup accessory as GARAGE_DOOR_OPENER (4) category.
-              var newAccessory = new Accessory("MyQ " + thisDoorName, uuid, 4);
-
-              // New accessory found in the server is always reachable
-              newAccessory.reachable = true;
-
-              // Store and initialize variables into context
-              newAccessory.context.deviceID = thisDeviceID;
-              newAccessory.context.initialState = Characteristic.CurrentDoorState.CLOSED;
-              newAccessory.context.currentState = Characteristic.CurrentDoorState.CLOSED;
-              newAccessory.context.serialNumber = thisSerialNumber;
+              var uuid = UUIDGen.generate(thisDeviceID);
+              accessory = new Accessory("MyQ " + thisDoorName, uuid, 4);
 
               // Setup HomeKit security system service
-              newAccessory.addService(Service.GarageDoorOpener, thisDoorName);
+              accessory.addService(Service.GarageDoorOpener, thisDoorName);
+
+              // New accessory is always reachable
+              accessory.reachable = true;
 
               // Setup HomeKit accessory information
-              self.setAccessoryInfo(newAccessory);
+              self.setAccessoryInfo(accessory, thisModel, thisSerial);
 
               // Setup listeners for different security system events
-              self.setService(newAccessory);
+              self.setService(accessory);
 
-              // Register accessory in HomeKit
-              self.api.registerPlatformAccessories("homebridge-assurelink2", "AssureLink2", [newAccessory]);
-            } else {
-              // Retrieve accessory from cache
-              var newAccessory = self.accessories[thisDeviceID];
+              // Register new accessory in HomeKit
+              self.api.registerPlatformAccessories("homebridge-liftmaster2", "LiftMaster2", [accessory]);
 
-              // Accessory is reachable after it's found in the server
-              newAccessory.updateReachability(true);
+              // Store accessory in cache
+              self.accessories[thisDeviceID] = accessory;
             }
 
+            // Accessory is reachable after it's found in the server
+            accessory.updateReachability(true);
+
+            // Store and initialize variables into context
+            var cache = accessory.context;
+            cache.name = thisDoorName;
+            cache.deviceID = thisDeviceID;
+            if (cache.currentState === undefined) cache.currentState = Characteristic.CurrentDoorState.CLOSED;
+
             // Determine the current door state
-            if (thisDoorState == 2) {
-              newAccessory.context.initialState = Characteristic.CurrentDoorState.CLOSED;
-              var newState = Characteristic.CurrentDoorState.CLOSED;
-            } else if (thisDoorState == 3) {
-              var newState = Characteristic.CurrentDoorState.STOPPED;
-            } else if (thisDoorState == 5 || (thisDoorState == 8 && newAccessory.context.initialState == Characteristic.CurrentDoorState.OPEN)) {
-              var newState = Characteristic.CurrentDoorState.CLOSING;
-            } else if (thisDoorState == 4 || (thisDoorState == 8 && newAccessory.context.initialState == Characteristic.CurrentDoorState.CLOSED)) {
-              var newState = Characteristic.CurrentDoorState.OPENING;
-            } else if (thisDoorState == 1 || thisDoorState == 9) {
-              newAccessory.context.initialState = Characteristic.CurrentDoorState.OPEN;
-              var newState = Characteristic.CurrentDoorState.OPEN;
+            var newState;
+            if (thisDoorState === "2") {
+              newState = Characteristic.CurrentDoorState.CLOSED;
+            } else if (thisDoorState === "3") {
+              newState = Characteristic.CurrentDoorState.STOPPED;
+            } else {
+              newState = Characteristic.CurrentDoorState.OPEN;
             }
 
             // Detect for state changes
-            if (newState != newAccessory.context.currentState) {
+            if (newState !== cache.currentState) {
               self.count = 0;
-              newAccessory.context.currentState = newState;
+              cache.currentState = newState;
             }
-
-            // Store accessory in cache
-            self.accessories[thisDeviceID] = newAccessory;
 
             // Set validData hint after we found an opener
             self.validData = true;
           }
         }
       } catch (err) {
-        self.log("[MYQ] Error '" + err + "'");
+        self.log("Error '" + err + "'");
       }
 
       // Did we have valid data?
       if (self.validData) {
         // Set short polling interval when state changes
-        if (self.tout && self.count == 0) {
-          clearTimeout(self.tout);
-          self.periodicUpdate();
-        }
+        if (self.polling) self.statePolling(0);
 
         callback();
       } else {
-        self.log("[MyQ] Error: Couldn't find a MyQ door device.");
-        callback("Missing MyQ Device ID");
+        var parseErr = "Error: Couldn't find a MyQ door device."
+        self.log(parseErr);
+        callback(new Error(parseErr));
       }
     } else {
-      self.log("[MyQ] Error '" + err + "' getting MyQ devices: " + body);
-      callback(err);
+      self.log("Error '" + err + "' getting MyQ devices: " + body);
+      callback(err || new Error(json.ErrorMessage));
+      callback(err || new Error(body));
     }
-  }).on('error', function(err) {
-    self.log("[MyQ] Error '" + err + "'");
+  }).on('error', function (err) {
+    self.log("Error '" + err + "'");
     callback(err);
   });
 }
 
 // Send opener target state to the server
-AssureLinkPlatform.prototype.setState = function(accessory, state, callback) {
+AssureLinkPlatform.prototype.setState = function (thisOpener, state, callback) {
   var self = this;
-  var thisOpener = accessory.context;
-  var name = accessory.displayName;
-  var liftmasterState = (state + "") == "1" ? "0" : "1";
+  var thisAccessory = this.accessories[thisOpener.deviceID];
+  var liftmasterState = state === 1 ? "0" : "1";
+  var updateDelay = state === 1 ? this.closeDuration : this.openDuration;
 
   // Querystring params
   var query = {
@@ -440,44 +379,90 @@ AssureLinkPlatform.prototype.setState = function(accessory, state, callback) {
     MyQDeviceId: thisOpener.deviceID
   };
 
-  // Send the state request to Assurelink
+  // Send the state request to liftmaster
   request.put({
     url: "https://craftexternal.myqdevice.com/api/v4/DeviceAttribute/PutDeviceAttribute",
     qs: query,
     headers: headers,
     body: body,
     json: true
-  }, function(err, response, json) {
-    if (!err && response.statusCode == 200) {
+  }, function (err, response, json) {
+    if (!err && response.statusCode === 200) {
+      if (json.ReturnCode === "0") {
+        self.log(thisOpener.name + " is set to " + self.doorState[state]);
 
-      if (json["ReturnCode"] == "0") {
-        self.log("[" + name + "] State was successfully set to " + self.doorState[state]);
-
-        // Set short polling interval
-        self.count = 0;
-        if (self.tout) {
-          clearTimeout(self.tout);
-          self.periodicUpdate();
+        if (self.polling) {
+          // Set short polling interval
+          self.count = 0;
+          self.statePolling(updateDelay - self.shortPoll);
+        } else {
+          // Update door state after updateDelay
+          setTimeout(function () {
+            self.updateState(function (error) {
+              if (!error) self.updateDoorStates(thisAccessory);
+            });
+          }, updateDelay * 1000);
         }
 
         callback();
       } else {
-        self.log("[" + name + "] Bad return code: " + json["ReturnCode"]);
-        self.log("[" + name + "] Raw response " + JSON.stringify(json));
-        callback("Unknown Error");
+        self.log("Bad return code: " + json.ReturnCode);
+        self.log("Raw response " + JSON.stringify(json));
+        callback(new Error("Unknown Error"));
       }
     } else {
-      self.log("[" + name + "] Error '"+err+"' setting door state: " + JSON.stringify(json));
-      callback(err);
+      self.log("Error '" + err + "' setting " + thisOpener.name + " state: " + JSON.stringify(json));
+      callback(err || new Error(json.ErrorMessage));
     }
-  }).on('error', function(err) {
-    self.log("[" + name + "] " + err);
+  }).on('error', function (err) {
+    self.log(err);
     callback(err);
   });
 }
 
+// Method to set target door state
+AssureLinkPlatform.prototype.setTargetState = function (thisOpener, state, callback) {
+  var self = this;
+
+  // Always re-login for setting the state
+  this.login(function (loginError) {
+    if (!loginError) {
+      self.setState(thisOpener, state, callback);
+    } else {
+      callback(loginError);
+    }
+  });
+}
+
+// Method to get target door state
+AssureLinkPlatform.prototype.getTargetState = function (thisOpener, callback) {
+  // Get target state directly from cache
+  callback(null, thisOpener.currentState % 2);
+}
+
+// Method to get current door state
+AssureLinkPlatform.prototype.getCurrentState = function (thisOpener, callback) {
+  var self = this;
+
+  // Retrieve latest state from server
+  this.updateState(function (error) {
+    if (!error) {
+      self.log(thisOpener.name + " is " + self.doorState[thisOpener.currentState]);
+      callback(null, thisOpener.currentState);
+    } else {
+      callback(error);
+    }
+  });
+}
+
+// Method to handle identify request
+AssureLinkPlatform.prototype.identify = function (thisOpener, paired, callback) {
+  this.log(thisOpener.name + " identify requested!");
+  callback();
+}
+
 // Method to handle plugin configuration in HomeKit app
-AssureLinkPlatform.prototype.configurationRequestHandler = function(context, request, callback) {
+AssureLinkPlatform.prototype.configurationRequestHandler = function (context, request, callback) {
   if (request && request.type === "Terminate") {
     return;
   }
@@ -512,6 +497,18 @@ AssureLinkPlatform.prototype.configurationRequestHandler = function(context, req
             "placeholder": this.password ? "Leave blank if unchanged" : "password",
             "secure": true
           }, {
+            "id": "openDuration",
+            "title": "Time to Open Garage Door Completely",
+            "placeholder": this.openDuration.toString(),
+          }, {
+            "id": "closeDuration",
+            "title": "Time to Close Garage Door Completely",
+            "placeholder": this.closeDuration.toString(),
+          }, {
+            "id": "polling",
+            "title": "Enable Polling (true/false)",
+            "placeholder": this.polling.toString(),
+          }, {
             "id": "longPoll",
             "title": "Long Polling Interval",
             "placeholder": this.longPoll.toString(),
@@ -535,6 +532,13 @@ AssureLinkPlatform.prototype.configurationRequestHandler = function(context, req
         // Setup info for adding or updating accessory
         this.username = userInputs.username || this.username;
         this.password = userInputs.password || this.password;
+        this.openDuration = parseInt(userInputs.openDuration, 10) || this.openDuration;
+        this.closeDuration = parseInt(userInputs.closeDuration, 10) || this.closeDuration;
+        if (userInputs.polling.toUpperCase() === "TRUE") {
+          this.polling = true;
+        } else if (userInputs.polling.toUpperCase() === "FALSE") {
+          this.polling = false;
+        }
         this.longPoll = parseInt(userInputs.longPoll, 10) || this.longPoll;
         this.shortPoll = parseInt(userInputs.shortPoll, 10) || this.shortPoll;
         this.shortPollDuration = parseInt(userInputs.shortPollDuration, 10) || this.shortPollDuration;
@@ -545,11 +549,10 @@ AssureLinkPlatform.prototype.configurationRequestHandler = function(context, req
           this.addAccessory();
 
           // Reset polling
-          this.maxCount = this.shortPollDuration / this.shortPoll;
-		  this.count = this.maxCount;
-          if (this.tout) {
-            clearTimeout(this.tout);
-            this.periodicUpdate();
+          if (this.polling) {
+            this.maxCount = this.shortPollDuration / this.shortPoll;
+            this.count = this.maxCount;
+            this.statePolling(0);
           }
 
           var respDict = {
@@ -581,6 +584,9 @@ AssureLinkPlatform.prototype.configurationRequestHandler = function(context, req
         var newConfig = this.config;
         newConfig.username = this.username;
         newConfig.password = this.password;
+        newConfig.openDuration = this.openDuration;
+        newConfig.closeDuration = this.closeDuration;
+        newConfig.polling = this.polling;
         newConfig.longPoll = this.longPoll;
         newConfig.shortPoll = this.shortPoll;
         newConfig.shortPollDuration = this.shortPollDuration;

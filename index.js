@@ -103,7 +103,7 @@ AssureLinkPlatform.prototype.setService = function(accessory) {
 }
 
 // Method to setup HomeKit accessory information
-AssureLinkPlatform..prototype.setAccessoryInfo = function (accessory, model, serial) {
+AssureLinkPlatform.prototype.setAccessoryInfo = function (accessory, model, serial) {
   accessory.getService(Service.AccessoryInformation)
     .setCharacteristic(Characteristic.Manufacturer, this.manufacturer)
     .setCharacteristic(Characteristic.Model, model)

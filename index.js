@@ -50,13 +50,13 @@ function AssureLinkPlatform(log, config, api) {
 }
 
 // Method to restore accessories from cache
-LiftMasterPlatform.prototype.configureAccessory = function (accessory) {
+AssureLinkPlatform.prototype.configureAccessory = function (accessory) {
   this.setService(accessory);
   this.accessories[accessory.context.deviceID] = accessory;
 }
 
 // Method to setup accesories from config.json
-LiftMasterPlatform.prototype.didFinishLaunching = function () {
+AssureLinkPlatform.prototype.didFinishLaunching = function () {
   if (this.username && this.password) {
     // Add or update accessory in HomeKit
     this.addAccessory();

@@ -10,11 +10,10 @@ module.exports = function (homebridge) {
   homebridge.registerPlatform("homebridge-assurelink2", "AssureLink2", AssureLinkPlatform, true);
 }
 
-
+// This seems to be the "id" of the official LiftMaster iOS app
 var APP_ID = "eU97d99kMG4t3STJZO/Mu2wt69yTQwM0WXZA5oZ74/ascQ2xQrLD/yjeVhEQccBZ";
-var link = "https://craftexternal";
 
-
+// Headers needed for validation
 var HEADERS = {
     "Content-Type": "application/json",
     "User-Agent": "Chamberlain/3.73",
@@ -26,7 +25,7 @@ var HEADERS = {
 
 function AssureLinkPlatform(log, config, api) {
   this.log = log;
-  this.config = config || {"platform": "AssureLink2"};
+  this.config = config || {"platform": "LiftMaster2"};
   this.username = this.config.username;
   this.password = this.config.password;
   this.openDuration = parseInt(this.config.openDuration, 10) || 15;
@@ -51,13 +50,13 @@ function AssureLinkPlatform(log, config, api) {
 }
 
 // Method to restore accessories from cache
-AssureLinkPlatform.prototype.configureAccessory = function (accessory) {
+LiftMasterPlatform.prototype.configureAccessory = function (accessory) {
   this.setService(accessory);
   this.accessories[accessory.context.deviceID] = accessory;
 }
 
 // Method to setup accesories from config.json
-AssureLinkPlatform.prototype.didFinishLaunching = function () {
+LiftMasterPlatform.prototype.didFinishLaunching = function () {
   if (this.username && this.password) {
     // Add or update accessory in HomeKit
     this.addAccessory();
@@ -65,7 +64,7 @@ AssureLinkPlatform.prototype.didFinishLaunching = function () {
     // Start polling
     if (this.polling) this.statePolling(0);
   } else {
-    this.log("Please setup MyQ login information!")
+    this.log("Please setup MyQ login information!");
     for (var deviceID in this.accessories) {
       var accessory = this.accessories[deviceID];
       this.removeAccessory(accessory);
@@ -98,7 +97,7 @@ AssureLinkPlatform.prototype.removeAccessory = function (accessory) {
   if (accessory) {
     var deviceID = accessory.context.deviceID;
     this.log(accessory.context.name + " is removed from HomeBridge.");
-    this.api.unregisterPlatformAccessories("homebridge-assurelink2", "AssureLink2", [accessory]);
+    this.api.unregisterPlatformAccessories("homebridge-liftmaster2", "LiftMaster2", [accessory]);
     delete this.accessories[deviceID];
   }
 }
@@ -129,7 +128,7 @@ AssureLinkPlatform.prototype.setAccessoryInfo = function (accessory, model, seri
 AssureLinkPlatform.prototype.updateDoorStates = function (accessory) {
   accessory.getService(Service.GarageDoorOpener)
     .setCharacteristic(Characteristic.CurrentDoorState, accessory.context.currentState);
-  
+
   accessory.getService(Service.GarageDoorOpener)
     .getCharacteristic(Characteristic.TargetDoorState)
     .getValue();
@@ -184,14 +183,14 @@ AssureLinkPlatform.prototype.statePolling = function (delay) {
 AssureLinkPlatform.prototype.login = function (callback) {
   var self = this;
 
-  // querystring params
-   var body = {
+  // Body stream for validation
+  var body = {
     username: this.username,
     password: this.password
   };
 
   // login to liftmaster
-  fetch(link+".myqdevice.com/api/v4/User/Validate/",{
+  fetch("https://craftexternal.myqdevice.com/api/v4/User/Validate", {
     method: "POST",
     headers: HEADERS,
     body: JSON.stringify(body)
@@ -222,13 +221,13 @@ AssureLinkPlatform.prototype.getDevice = function (callback) {
     filterOn: "true"
   };
 
-   // Adding security token to headers
+  // Adding security token to headers
   var getHeaders = JSON.parse(JSON.stringify(HEADERS));
   getHeaders.SecurityToken = this.securityToken;
 
   // Request details of all your devices
-  request.get(link+".myqdevice.com/api/v4/UserDeviceDetails/Get",{
-        method: "GET",
+  fetch("https://craftexternal.myqdevice.com/api/v4/UserDeviceDetails/Get", {
+    method: "GET",
     headers: getHeaders,
     query: query
   }).then(function (res) {
@@ -293,7 +292,7 @@ AssureLinkPlatform.prototype.getDevice = function (callback) {
               self.setService(accessory);
 
               // Register new accessory in HomeKit
-              self.api.registerPlatformAccessories("homebridge-assurelink2", "AssureLink2", [accessory]);
+              self.api.registerPlatformAccessories("homebridge-liftmaster2", "LiftMaster2", [accessory]);
 
               // Store accessory in cache
               self.accessories[thisDeviceID] = accessory;
@@ -367,7 +366,7 @@ AssureLinkPlatform.prototype.setState = function (thisOpener, state, callback) {
   };
 
   // Send the state request to liftmaster
-  fetch(link+".myqdevice.com/api/v4/DeviceAttribute/PutDeviceAttribute",{
+  fetch("https://craftexternal.myqdevice.com/api/v4/DeviceAttribute/PutDeviceAttribute", {
     method: "PUT",
     headers: putHeaders,
     body: JSON.stringify(body)

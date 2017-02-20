@@ -1,6 +1,6 @@
 {
   "name": "homebridge-assurelink2",
-  "version": "3.0.1",
+  "version": "3.0.4",
   "description": "Assurelink plugin for HomeBridge (API 2.0): https://github.com/nfarina/homebridge",
   "repository": {
     "type": "git",

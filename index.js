@@ -266,8 +266,8 @@ AssureLinkPlatform.prototype.getDevice = function (callback) {
             }
 
              if (thisAttributeSet.AttributeDisplayName === "myqmonitormode") {
- +              thisDoorMonitor = thisAttributeSet.Value;
- +            }
+              thisDoorMonitor = thisAttributeSet.Value;
+            }
           }
 
           if (thisDoorMonitor === "0") {

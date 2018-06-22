@@ -1,5 +1,5 @@
 # homebridge-assurelink2
-ASSURELINK Plugin for [HomeBridge](https://github.com/nfarina/homebridge) (API 2.0)
+AssureLink Plugin for [Homebridge](https://github.com/nfarina/homebridge) (API 2.0)
 
 Older verion with API 1.0: [homebridge-assurelink](https://github.com/tekuonline/homebridge-assurelink)
 
@@ -19,7 +19,7 @@ Edit your `config.json` accordingly. Configuration sample:
 ```
 
 ### Advanced Configuration (Optional)
-This step is not required. HomeBridge with API 2.0 can handle configurations in the HomeKit app.
+This step is not required. Homebridge with API 2.0 can handle configurations in the HomeKit app.
 ```
 "platforms": [{
     "platform": "AssureLink2",

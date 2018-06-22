@@ -1,20 +1,17 @@
 {
-  "name": "homebridge-liftmaster2",
-  "version": "0.4.3",
-  "description": "LiftMaster plugin for HomeBridge (API 2.0): https://github.com/nfarina/homebridge",
+  "name": "homebridge-assurelink2",
+  "version": "0.0.1",
+  "description": "AssureLink plugin for Homebridge (API 2.0): https://github.com/nfarina/homebridge",
   "repository": {
     "type": "git",
-    "url": "git://github.com/luisiam/homebridge-liftmaster2.git"
+    "url": "git://github.com/pilot76103/homebridge-assurelink2.git"
   },
   "keywords": [
     "homebridge-plugin"
   ],
-  "author": "Luis Iam",
+  "author": "Jordan Jacob",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/luisiam/homebridge-liftmaster2/issues"
-  },
-  "homepage": "https://github.com/luisiam/homebridge-liftmaster2#readme",
+  "homepage": "https://github.com/pilot76103/homebridge-assurelink2#readme",
   "engines": {
     "node": ">=0.12.0",
     "homebridge": ">=0.3.0"

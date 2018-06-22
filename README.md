@@ -1,25 +1,18 @@
-# homebridge-liftmaster2
-LiftMaster Plugin for [HomeBridge](https://github.com/nfarina/homebridge) (API 2.0)
+# homebridge-assurelink2
+ASSURELINK Plugin for [HomeBridge](https://github.com/nfarina/homebridge) (API 2.0)
 
-Older verion using API 1.0: [homebridge-liftmaster](https://github.com/nfarina/homebridge-liftmaster)
+Older verion with API 1.0: [homebridge-assurelink](https://github.com/tekuonline/homebridge-assurelink)
 
 # Installation
-1. Install homebridge using `npm install -g homebridge`.
-2. Install this plugin using `npm install -g git+https://github.com/luisiam/homebridge-liftmaster2.git`.
+1. Install homebridge using `sudo npm install -g homebridge`.
+2. Install this plugin using `sudo npm install -g homebridge-assurelink2`
 3. Update your configuration file. See configuration sample below.
-
-# Removal
-1. Stop homebridge.
-2. Remove configuration in `config.json`.
-3. Start homebridge (the plugin will remove cached accessories automatically).
-4. Remove this plugin using `npm remove -g homebridge-liftmaster2`.
-5. Restart homebridge.
 
 # Configuration
 Edit your `config.json` accordingly. Configuration sample:
  ```
 "platforms": [{
-    "platform": "LiftMaster2",
+    "platform": "AssureLink2",
     "username": "email@email.com",
     "password": "password"
 }]
@@ -29,7 +22,7 @@ Edit your `config.json` accordingly. Configuration sample:
 This step is not required. HomeBridge with API 2.0 can handle configurations in the HomeKit app.
 ```
 "platforms": [{
-    "platform": "LiftMaster2",
+    "platform": "AssureLink2",
     "name": "MyQ",
     "username": "email@email.com",
     "password": "password",
@@ -45,7 +38,7 @@ This step is not required. HomeBridge with API 2.0 can handle configurations in 
 
 | Fields            | Description                                      | Default | Required |
 |-------------------|--------------------------------------------------|---------|----------|
-| platform          | Must always be `LiftMaster2`.                    |         | Yes      |
+| platform          | Must always be `AssureLink2`.                    |         | Yes      |
 | name              | For logging purposes.                            |         | No       |
 | username          | Your MyQ account email.                          |         | Yes      |
 | password          | Your MyQ account password.                       |         | Yes      |

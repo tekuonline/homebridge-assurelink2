@@ -5,7 +5,7 @@ Older verion with API 1.0: [homebridge-assurelink](https://github.com/tekuonline
 
 # Installation
 1. Install homebridge using `sudo npm install -g homebridge`.
-2. Install this plugin using `sudo npm install -g homebridge-assurelink2`
+2. Install this plugin using `sudo npm install -g git+https://github.com/pilot76103/homebridge-assurelink2.git`.
 3. Update your configuration file. See configuration sample below.
 
 # Configuration

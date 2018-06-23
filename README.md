@@ -50,4 +50,3 @@ This step is not required. Homebridge with API 2.0 can handle configurations in 
 | longPoll          | Normal polling interval in `s`.                  | 300     | No       |
 | shortPoll         | Polling interval in `s` when door state changes. | 5       | No       |
 | shortPollDuration | Duration in `s` to use `shortPoll`.              | 120     | No       |
-.

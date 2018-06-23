@@ -1,7 +1,9 @@
 # homebridge-assurelink2
 AssureLink Plugin for [Homebridge](https://github.com/nfarina/homebridge) (API 2.0)
 
-Older verion with API 1.0: [homebridge-assurelink](https://github.com/tekuonline/homebridge-assurelink)
+Reversed engineered from [LiftMaster Plugin for HomeBridge (API 2.0)](https://github.com/luisiam/homebridge-liftmaster2) by luisiam to be compatible with Craftsman AssureLink GDOs. This code will not be managed or supported in any additional manner and resolves the Duplicate UUIDs that was experienced with tekuonline's [Assurelink Plugin for HomeBridge (API 2.0)](https://github.com/tekuonline/homebridge-assurelink2).
+
+Special thanks to [luisiam](https://github.com/luisiam) for the original LiftMaster plugin/code that this was based on and [tekuonline](https://github.com/tekuonline) for the Craftsman API URLs.
 
 # Installation
 1. Install homebridge using `sudo npm install -g homebridge`.

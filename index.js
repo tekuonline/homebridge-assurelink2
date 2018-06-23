@@ -1,3 +1,4 @@
+
 var fetch = require("node-fetch");
 var Accessory, Service, Characteristic, UUIDGen;
 

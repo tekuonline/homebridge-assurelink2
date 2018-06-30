@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 var fetch = require("node-fetch");
 var Accessory, Service, Characteristic, UUIDGen;
 
@@ -16,17 +15,19 @@ var APP_ID = "eU97d99kMG4t3STJZO/Mu2wt69yTQwM0WXZA5oZ74/ascQ2xQrLD/yjeVhEQccBZ";
 
 // Headers needed for validation
 var HEADERS = {
-    "Content-Type": "application/json",
-    "User-Agent": "Chamberlain/3.73",
-    "BrandID": "2",
-    "ApiVersion": "4.1",
-    "Culture": "en",
-    "MyQApplicationID": APP_ID
+  "Content-Type": "application/json",
+  "User-Agent": "Chamberlain/3.73",
+  "BrandID": "2",
+  "ApiVersion": "4.1",
+  "Culture": "en",
+  "MyQApplicationID": APP_ID
 };
 
 function AssureLinkPlatform(log, config, api) {
   this.log = log;
-  this.config = config || {"platform": "LiftMaster2"};
+  this.config = config || {
+    "platform": "LiftMaster2"
+  };
   this.username = this.config.username;
   this.password = this.config.password;
   this.openDuration = parseInt(this.config.openDuration, 10) || 15;
@@ -77,7 +78,7 @@ AssureLinkPlatform.prototype.didFinishLaunching = function () {
 AssureLinkPlatform.prototype.addAccessory = function () {
   var self = this;
 
-  this.login(function (error){
+  this.login(function (error) {
     if (!error) {
       for (var deviceID in self.accessories) {
         var accessory = self.accessories[deviceID];
@@ -156,7 +157,7 @@ AssureLinkPlatform.prototype.statePolling = function (delay) {
   clearTimeout(this.tout);
 
   // Determine polling interval
-  if (this.count  < this.maxCount) {
+  if (this.count < this.maxCount) {
     this.count++;
     refresh = this.shortPoll + delay;
   }
@@ -206,7 +207,7 @@ AssureLinkPlatform.prototype.login = function (callback) {
       self.getDevice(callback);
     } else {
       self.log(data.ErrorMessage);
-      callback(data.ErrorMessage);      
+      callback(data.ErrorMessage);
     }
   });
 }
@@ -253,7 +254,7 @@ AssureLinkPlatform.prototype.getDevice = function (callback) {
           var nameFound = false;
           var thisDoorMonitor = "0";
 
-          for (var j = 0; j < device.Attributes.length; j ++) {
+          for (var j = 0; j < device.Attributes.length; j++) {
             var thisAttributeSet = device.Attributes[j];
 
             // Search for device name
@@ -266,7 +267,7 @@ AssureLinkPlatform.prototype.getDevice = function (callback) {
               thisDoorState = thisAttributeSet.Value;
             }
 
-             if (thisAttributeSet.AttributeDisplayName === "myqmonitormode") {
+            if (thisAttributeSet.AttributeDisplayName === "myqmonitormode") {
               thisDoorMonitor = thisAttributeSet.Value;
             }
           }
@@ -372,7 +373,7 @@ AssureLinkPlatform.prototype.setState = function (thisOpener, state, callback) {
     method: "PUT",
     headers: putHeaders,
     body: JSON.stringify(body)
-  }).then(function(res) {
+  }).then(function (res) {
     return res.json();
   }).then(function (data) {
     if (data.ReturnCode === "0") {
@@ -442,140 +443,141 @@ AssureLinkPlatform.prototype.identify = function (thisOpener, paired, callback) 
 
 // Method to handle plugin configuration in HomeKit app
 AssureLinkPlatform.prototype.configurationRequestHandler = function (context, request, callback) {
-  if (request && request.type === "Terminate") {
-    return;
-  }
-
-  // Instruction
-  if (!context.step) {
-    var instructionResp = {
-      "type": "Interface",
-      "interface": "instruction",
-      "title": "Before You Start...",
-      "detail": "Please make sure homebridge is running with elevated privileges.",
-      "showNextButton": true
+    if (request && request.type === "Terminate") {
+      return;
     }
 
-    context.step = 1;
-    callback(instructionResp);
-  } else {
-    switch (context.step) {
-      // Operation choices
-      case 1:
-        var respDict = {
-          "type": "Interface",
-          "interface": "input",
-          "title": "Configuration",
-          "items": [{
-            "id": "username",
-            "title": "Login Username (Required)",
-            "placeholder": this.username ? "Leave blank if unchanged" : "email"
+    // Instruction
+    if (!context.step) {
+      var instructionResp = {
+        "type": "Interface",
+        "interface": "instruction",
+        "title": "Before You Start...",
+        "detail": "Please make sure homebridge is running with elevated privileges.",
+        "showNextButton": true
+      }
+
+      context.step = 1;
+      callback(instructionResp);
+    } else {
+      switch (context.step) {
+        // Operation choices
+        case 1:
+          var respDict = {
+            "type": "Interface",
+            "interface": "input",
+            "title": "Configuration",
+            "items": [{
+              "id": "username",
+              "title": "Login Username (Required)",
+              "placeholder": this.username ? "Leave blank if unchanged" : "email"
           }, {
-            "id": "password",
-            "title": "Login Password (Required)",
-            "placeholder": this.password ? "Leave blank if unchanged" : "password",
-            "secure": true
+              "id": "password",
+              "title": "Login Password (Required)",
+              "placeholder": this.password ? "Leave blank if unchanged" : "password",
+              "secure": true
           }, {
-            "id": "openDuration",
-            "title": "Time to Open Garage Door Completely",
-            "placeholder": this.openDuration.toString(),
+              "id": "openDuration",
+              "title": "Time to Open Garage Door Completely",
+              "placeholder": this.openDuration.toString(),
           }, {
-            "id": "closeDuration",
-            "title": "Time to Close Garage Door Completely",
-            "placeholder": this.closeDuration.toString(),
+              "id": "closeDuration",
+              "title": "Time to Close Garage Door Completely",
+              "placeholder": this.closeDuration.toString(),
           }, {
-            "id": "polling",
-            "title": "Enable Polling (true/false)",
-            "placeholder": this.polling.toString(),
+              "id": "polling",
+              "title": "Enable Polling (true/false)",
+              "placeholder": this.polling.toString(),
           }, {
-            "id": "longPoll",
-            "title": "Long Polling Interval",
-            "placeholder": this.longPoll.toString(),
+              "id": "longPoll",
+              "title": "Long Polling Interval",
+              "placeholder": this.longPoll.toString(),
           }, {
-            "id": "shortPoll",
-            "title": "Short Polling Interval",
-            "placeholder": this.shortPoll.toString(),
+              "id": "shortPoll",
+              "title": "Short Polling Interval",
+              "placeholder": this.shortPoll.toString(),
           }, {
-            "id": "shortPollDuration",
-            "title": "Short Polling Duration",
-            "placeholder": this.shortPollDuration.toString(),
+              "id": "shortPollDuration",
+              "title": "Short Polling Duration",
+              "placeholder": this.shortPollDuration.toString(),
           }]
-        }
-
-        context.step = 2;
-        callback(respDict);
-        break;
-      case 2:
-        var userInputs = request.response.inputs;
-
-        // Setup info for adding or updating accessory
-        this.username = userInputs.username || this.username;
-        this.password = userInputs.password || this.password;
-        this.openDuration = parseInt(userInputs.openDuration, 10) || this.openDuration;
-        this.closeDuration = parseInt(userInputs.closeDuration, 10) || this.closeDuration;
-        if (userInputs.polling.toUpperCase() === "TRUE") {
-          this.polling = true;
-        } else if (userInputs.polling.toUpperCase() === "FALSE") {
-          this.polling = false;
-        }
-        this.longPoll = parseInt(userInputs.longPoll, 10) || this.longPoll;
-        this.shortPoll = parseInt(userInputs.shortPoll, 10) || this.shortPoll;
-        this.shortPollDuration = parseInt(userInputs.shortPollDuration, 10) || this.shortPollDuration;
-
-        // Check for required info
-        if (this.username && this.password) {
-          // Add or update accessory in HomeKit
-          this.addAccessory();
-
-          // Reset polling
-          if (this.polling) {
-            this.maxCount = this.shortPollDuration / this.shortPoll;
-            this.count = this.maxCount;
-            this.statePolling(0);
           }
 
-          var respDict = {
-            "type": "Interface",
-            "interface": "instruction",
-            "title": "Success",
-            "detail": "The configuration is now updated.",
-            "showNextButton": true
-          };
+          context.step = 2;
+          callback(respDict);
+          break;
+        case 2:
+          var userInputs = request.response.inputs;
 
-          context.step = 3;
-        } else {
-          // Error if required info is missing
-          var respDict = {
-            "type": "Interface",
-            "interface": "instruction",
-            "title": "Error",
-            "detail": "Some required information is missing.",
-            "showNextButton": true
-          };
+          // Setup info for adding or updating accessory
+          this.username = userInputs.username || this.username;
+          this.password = userInputs.password || this.password;
+          this.openDuration = parseInt(userInputs.openDuration, 10) || this.openDuration;
+          this.closeDuration = parseInt(userInputs.closeDuration, 10) || this.closeDuration;
+          if (userInputs.polling.toUpperCase() === "TRUE") {
+            this.polling = true;
+          } else if (userInputs.polling.toUpperCase() === "FALSE") {
+            this.polling = false;
+          }
+          this.longPoll = parseInt(userInputs.longPoll, 10) || this.longPoll;
+          this.shortPoll = parseInt(userInputs.shortPoll, 10) || this.shortPoll;
+          this.shortPollDuration = parseInt(userInputs.shortPollDuration, 10) || this.shortPollDuration;
 
-          context.step = 1;
-        }
-        callback(respDict);
-        break;
-      case 3:
-        // Update config.json accordingly
-        delete context.step;
-        var newConfig = this.config;
-        newConfig.username = this.username;
-        newConfig.password = this.password;
-        newConfig.openDuration = this.openDuration;
-        newConfig.closeDuration = this.closeDuration;
-        newConfig.polling = this.polling;
-        newConfig.longPoll = this.longPoll;
-        newConfig.shortPoll = this.shortPoll;
-        newConfig.shortPollDuration = this.shortPollDuration;
-        callback(null, "platform", true, newConfig);
-        break;
+          // Check for required info
+          if (this.username && this.password) {
+            // Add or update accessory in HomeKit
+            this.addAccessory();
+
+            // Reset polling
+            if (this.polling) {
+              this.maxCount = this.shortPollDuration / this.shortPoll;
+              this.count = this.maxCount;
+              this.statePolling(0);
+            }
+
+            var respDict = {
+              "type": "Interface",
+              "interface": "instruction",
+              "title": "Success",
+              "detail": "The configuration is now updated.",
+              "showNextButton": true
+            };
+
+            context.step = 3;
+          } else {
+            // Error if required info is missing
+            var respDict = {
+              "type": "Interface",
+              "interface": "instruction",
+              "title": "Error",
+              "detail": "Some required information is missing.",
+              "showNextButton": true
+            };
+
+            context.step = 1;
+          }
+          callback(respDict);
+          break;
+        case 3:
+          // Update config.json accordingly
+          delete context.step;
+          var newConfig = this.config;
+          newConfig.username = this.username;
+          newConfig.password = this.password;
+          newConfig.openDuration = this.openDuration;
+          newConfig.closeDuration = this.closeDuration;
+          newConfig.polling = this.polling;
+          newConfig.longPoll = this.longPoll;
+          newConfig.shortPoll = this.shortPoll;
+          newConfig.shortPollDuration = this.shortPollDuration;
+          callback(null, "platform", true, newConfig);
+          break;
+      }
     }
-  }
-}
-=======
-var fetch = require("node-fetch");
+  } ===
+  ===
+  =
+  var fetch = require("node-fetch");
 var Accessory, Service, Characteristic, UUIDGen;
 
 module.exports = function (homebridge) {
@@ -592,18 +594,20 @@ var APP_ID = "eU97d99kMG4t3STJZO/Mu2wt69yTQwM0WXZA5oZ74/ascQ2xQrLD/yjeVhEQccBZ";
 
 // Headers needed for validation
 var HEADERS = {
-    "Content-Type": "application/json",
-    "User-Agent": "Chamberlain/3.73",
-    "BrandID": "2",
-    "ApiVersion": "4.1",
-    "Culture": "en",
-    "MyQApplicationID": APP_ID
+  "Content-Type": "application/json",
+  "User-Agent": "Chamberlain/3.73",
+  "BrandID": "2",
+  "ApiVersion": "4.1",
+  "Culture": "en",
+  "MyQApplicationID": APP_ID
 };
 
 function AssureLinkPlatform(log, config, api) {
   this.log = log;
-// Testing platform as AssureLink2, if this does not work set back to "{"platform": "LiftMaster2"}".
-  this.config = config || {"platform": "AssureLink2"};
+  // Testing platform as AssureLink2, if this does not work set back to "{"platform": "LiftMaster2"}".
+  this.config = config || {
+    "platform": "AssureLink2"
+  };
   this.username = this.config.username;
   this.password = this.config.password;
   this.openDuration = parseInt(this.config.openDuration, 10) || 15;
@@ -654,7 +658,7 @@ AssureLinkPlatform.prototype.didFinishLaunching = function () {
 AssureLinkPlatform.prototype.addAccessory = function () {
   var self = this;
 
-  this.login(function (error){
+  this.login(function (error) {
     if (!error) {
       for (var deviceID in self.accessories) {
         var accessory = self.accessories[deviceID];
@@ -733,7 +737,7 @@ AssureLinkPlatform.prototype.statePolling = function (delay) {
   clearTimeout(this.tout);
 
   // Determine polling interval
-  if (this.count  < this.maxCount) {
+  if (this.count < this.maxCount) {
     this.count++;
     refresh = this.shortPoll + delay;
   }
@@ -779,12 +783,12 @@ AssureLinkPlatform.prototype.login = function (callback) {
     // Check for MyQ Error Codes
     if (data.ReturnCode === "0") {
       self.securityToken = data.SecurityToken;
-    // Previously set to Chamberlain
+      // Previously set to Chamberlain
       self.manufacturer = "Craftsman";
       self.getDevice(callback);
     } else {
       self.log(data.ErrorMessage);
-      callback(data.ErrorMessage);      
+      callback(data.ErrorMessage);
     }
   });
 }
@@ -830,7 +834,7 @@ AssureLinkPlatform.prototype.getDevice = function (callback) {
           var thisDoorState = "2";
           var thisDoorMonitor = "0";
 
-          for (var j = 0; j < device.Attributes.length; j ++) {
+          for (var j = 0; j < device.Attributes.length; j++) {
             var thisAttributeSet = device.Attributes[j];
 
             // Search for device name
@@ -950,7 +954,7 @@ AssureLinkPlatform.prototype.setState = function (thisOpener, state, callback) {
     method: "PUT",
     headers: putHeaders,
     body: JSON.stringify(body)
-  }).then(function(res) {
+  }).then(function (res) {
     return res.json();
   }).then(function (data) {
     if (data.ReturnCode === "0") {
@@ -1152,4 +1156,3 @@ AssureLinkPlatform.prototype.configurationRequestHandler = function (context, re
     }
   }
 }
->>>>>>> d48aac432a1de64a5314ca290ea90686d1e952a5

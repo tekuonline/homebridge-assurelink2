@@ -1,23 +1,19 @@
 {
   "name": "homebridge-assurelink2",
-<<<<<<< HEAD
   "version": "3.0.5",
   "description": "Assurelink plugin for HomeBridge (API 2.0): https://github.com/nfarina/homebridge",
   "repository": {
     "type": "git",
-    "url": "git://github.com/tekuonline/homebridge-assurelink2.git"
-=======
+    "url": "git://github.com/tekuonline/homebridge-assurelink2.git",
   "version": "3.1.0",
   "description": "AssureLink plugin for Homebridge (API 2.0): https://github.com/nfarina/homebridge",
   "repository": {
     "type": "git",
     "url": "git://github.com/pilot76103/homebridge-assurelink2.git"
->>>>>>> d48aac432a1de64a5314ca290ea90686d1e952a5
   },
   "keywords": [
     "homebridge-plugin"
   ],
-<<<<<<< HEAD
   "author": "Tek Nepal",
   "contributor": [{
   "name": "luisiam"
@@ -27,20 +23,15 @@
     "url": "https://github.com/tekuonline/homebridge-assurelink2/issues"
   },
   "homepage": "https://github.com/tekuonline/homebridge-assurelink2#readme",
-=======
   "author": "Jordan Jacob, Luis Iam and Tek Nepal",
   "license": "ISC",
   "homepage": "https://github.com/pilot76103/homebridge-assurelink2#readme",
->>>>>>> d48aac432a1de64a5314ca290ea90686d1e952a5
   "engines": {
     "node": ">=0.12.0",
     "homebridge": ">=0.3.0"
   },
   "dependencies": {
-<<<<<<< HEAD
     "request": ">=2.49.0",
-=======
->>>>>>> d48aac432a1de64a5314ca290ea90686d1e952a5
     "node-fetch": "^1.6.3"
   }
 }

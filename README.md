@@ -1,5 +1,4 @@
 # homebridge-assurelink2
-<<<<<<< HEAD
 ASSURELINK Plugin for [HomeBridge](https://github.com/nfarina/homebridge) (API 2.0)
 
 Older verion with API 1.0: [homebridge-assurelink](https://github.com/tekuonline/homebridge-assurelink)
@@ -7,7 +6,6 @@ Older verion with API 1.0: [homebridge-assurelink](https://github.com/tekuonline
 # Installation
 1. Install homebridge using `sudo npm install -g homebridge`.
 2. Install this plugin using `sudo npm install -g homebridge-assurelink2`
-=======
 AssureLink Plugin for [Homebridge](https://github.com/nfarina/homebridge) (API 2.0)
 
 Reversed engineered from [LiftMaster Plugin for HomeBridge (API 2.0)](https://github.com/luisiam/homebridge-liftmaster2) by luisiam to be compatible with Craftsman AssureLink GDOs. This code will not be managed or supported in any additional manner and resolves the Duplicate UUIDs that was experienced with tekuonline's [Assurelink Plugin for HomeBridge (API 2.0)](https://github.com/tekuonline/homebridge-assurelink2).
@@ -17,7 +15,6 @@ Special thanks to [luisiam](https://github.com/luisiam) for the original LiftMas
 # Installation
 1. Install homebridge using `sudo npm install -g homebridge`.
 2. Install this plugin using `sudo npm install -g git+https://github.com/pilot76103/homebridge-assurelink2.git`.
->>>>>>> d48aac432a1de64a5314ca290ea90686d1e952a5
 3. Update your configuration file. See configuration sample below.
 
 # Configuration
@@ -35,10 +32,7 @@ This step is not required. Homebridge with API 2.0 can handle configurations in 
 ```
 "platforms": [{
     "platform": "AssureLink2",
-<<<<<<< HEAD
-=======
     "name": "MyQ",
->>>>>>> d48aac432a1de64a5314ca290ea90686d1e952a5
     "username": "email@email.com",
     "password": "password",
     "openDuration": 15,
@@ -73,4 +67,3 @@ This step is not required. Homebridge with API 2.0 can handle configurations in 
 | longPoll          | Normal polling interval in `s`.                  | 300     | No       |
 | shortPoll         | Polling interval in `s` when door state changes. | 5       | No       |
 | shortPollDuration | Duration in `s` to use `shortPoll`.              | 120     | No       |
->>>>>>> d48aac432a1de64a5314ca290ea90686d1e952a5

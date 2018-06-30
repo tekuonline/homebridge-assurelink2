@@ -1,11 +1,4 @@
 # homebridge-assurelink2
-ASSURELINK Plugin for [HomeBridge](https://github.com/nfarina/homebridge) (API 2.0)
-
-Older verion with API 1.0: [homebridge-assurelink](https://github.com/tekuonline/homebridge-assurelink)
-
-# Installation
-1. Install homebridge using `sudo npm install -g homebridge`.
-2. Install this plugin using `sudo npm install -g homebridge-assurelink2`
 AssureLink Plugin for [Homebridge](https://github.com/nfarina/homebridge) (API 2.0)
 
 Reversed engineered from [LiftMaster Plugin for HomeBridge (API 2.0)](https://github.com/luisiam/homebridge-liftmaster2) by luisiam to be compatible with Craftsman AssureLink GDOs. This code will not be managed or supported in any additional manner and resolves the Duplicate UUIDs that was experienced with tekuonline's [Assurelink Plugin for HomeBridge (API 2.0)](https://github.com/tekuonline/homebridge-assurelink2).
@@ -45,16 +38,6 @@ This step is not required. Homebridge with API 2.0 can handle configurations in 
 
 ```
 
-<<<<<<< HEAD
-| Fields            | Description                                                   | Required |
-|-------------------|---------------------------------------------------------------|----------|
-| platform          | Must always be `AssureLink2`.                                 | Yes      |
-| username          | Your Assurelink account email.                                       | Yes      |
-| password          | Your Assurelink account password.                                    | Yes      |
-| longPoll          | Normal polling interval in `s` (Default 300s).                | No       |
-| shortPoll         | Polling interval in `s` when door state changes (Default 5s). | No       |
-| shortPollDuration | Duration in `s` to use `shortPoll` (Default 120s).            | No       |
-=======
 | Fields            | Description                                      | Default | Required |
 |-------------------|--------------------------------------------------|---------|----------|
 | platform          | Must always be `AssureLink2`.                    |         | Yes      |
